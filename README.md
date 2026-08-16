@@ -8,7 +8,7 @@ The lab is intentionally modular so robot behavior, fleet infrastructure, failur
 
 ### Experiments
 
-1. Telemetry / Liveness Failure
+##### 1. Telemetry / Liveness Failure
 
 Simulates a robot that keeps moving physically while telemetry to the backend is temporarily suppressed.
 
@@ -56,7 +56,7 @@ http://localhost:5173/
 
 ────────
 
-2. Robot Fleet Capacity Planning
+##### 2. Robot Fleet Capacity Planning
 
 A cookie-collection mission used to study how fleet size affects:
 
