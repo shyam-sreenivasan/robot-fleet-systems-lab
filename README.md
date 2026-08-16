@@ -1,4 +1,4 @@
-Robot Fleet Systems Lab
+# Robot Fleet Systems Lab
 
 A small experimental platform for studying production-style robot fleet systems: telemetry, reliability, fleet coordination, task execution, observability, and capacity planning.
 
@@ -6,7 +6,7 @@ The lab is intentionally modular so robot behavior, fleet infrastructure, failur
 
 ────────
 
-Experiments
+### Experiments
 
 1. Telemetry / Liveness Failure
 
