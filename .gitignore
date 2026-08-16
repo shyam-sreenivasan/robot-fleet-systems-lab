@@ -107,3 +107,5 @@ logs/
 tmp/
 temp/
 .cache/
+data/
+*.jsonl

@@ -22,7 +22,21 @@ from backend.services.health_monitor import (
     HealthMonitor,
 )
 from backend.services.event_bus import EventBus
+from backend.models.mission_event import (
+    MissionEvent,
+)
 
+from backend.storage.event_repository import (
+    EventRepository,
+)
+
+from backend.services.cookie_mission_metrics import (
+    CookieMissionMetricsService,
+)
+
+from backend.storage.run_event_writer import (
+    RunEventWriter,
+)
 
 app = FastAPI(
     title="Robot Fleet Backend"
@@ -44,6 +58,16 @@ fleet_state = FleetState()
 alert_service = AlertService()
 
 event_bus = EventBus()
+run_event_writer = RunEventWriter()
+mission_event_repository = (
+    EventRepository()
+)
+
+cookie_mission_metrics = (
+    CookieMissionMetricsService(
+        event_repository=mission_event_repository
+    )
+)
 
 health_monitor = HealthMonitor(
     fleet_state=fleet_state,
@@ -217,4 +241,105 @@ def get_summary():
 
         "active_alert_count":
             alert_service.active_count(),
+    }
+
+@app.post("/mission-events")
+def receive_mission_event(
+    event: MissionEvent,
+):
+    mission_event_repository.add(
+        event
+    )
+    run_event_writer.append(
+        event
+    )
+
+    return {
+        "status": "accepted",
+        "event_id": event.event_id,
+    }
+
+
+@app.get("/mission-events")
+def get_mission_events(
+    event_type: str | None = None,
+    robot_id: str | None = None,
+    mission_id: str | None = None,
+):
+    events = (
+        mission_event_repository.get_all(
+            event_type=event_type,
+            robot_id=robot_id,
+            mission_id=mission_id,
+        )
+    )
+
+    return {
+        "count": len(events),
+        "events": events,
+    }
+
+
+@app.get("/mission-summary")
+def get_mission_summary():
+    return (
+        cookie_mission_metrics.summary()
+    )
+
+
+@app.post("/live-mission-state")
+def receive_live_mission_state(
+    snapshot: dict,
+):
+    event_bus.publish(
+        {
+            "type":
+                "MISSION_STATE_SNAPSHOT",
+
+            "mission_id":
+                snapshot.get(
+                    "mission_id"
+                ),
+
+            "robots":
+                snapshot.get(
+                    "robots",
+                    [],
+                ),
+
+            "cookies":
+                snapshot.get(
+                    "cookies",
+                    [],
+                ),
+        }
+    )
+
+    return {
+        "status": "received"
+    }
+
+
+"""
+curl -X POST \
+  http://localhost:8000/mission-reset
+"""
+@app.post("/mission-reset")
+def reset_mission():
+
+    mission_event_repository.clear()
+
+    event_bus.publish(
+        {
+            "type":
+                "MISSION_RESET",
+        }
+    )
+
+    return {
+        "status":
+            "reset",
+
+        "message":
+            "Mission events cleared.",
     }

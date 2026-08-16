@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import CookieMission from "./CookieMission";
+
 
 const API_BASE = "http://localhost:8000";
 const WS_URL = "ws://localhost:8000/events";
 
 function App() {
+
+  if (
+    window.location.pathname === "/cookiemission"
+  ) {
+    return <CookieMission />;
+  }
   const [summary, setSummary] = useState({
     robot_count: 0,
     active_count: 0,
